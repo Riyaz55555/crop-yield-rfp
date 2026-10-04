@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>About — CropSense</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #080d12;
+      --surface:   rgba(255,255,255,.04);
+      --border:    rgba(255,255,255,.08);
+      --accent:    #4ade80;
+      --accent2:   #86efac;
+      --gold:      #fbbf24;
+      --sky:       #38bdf8;
+      --text:      #e8f0e9;
+      --muted:     rgba(232,240,233,.45);
+      --glow:      rgba(74,222,128,.18);
+      --font-head: 'Playfair Display', Georgia, serif;
+      --font-body: 'DM Sans', sans-serif;
+      --nav-h:     68px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 0;
+    }
+
+    /* ── Nav (shared) ───────────────────────────────────── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      height: var(--nav-h);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 clamp(1.5rem, 5vw, 4rem);
+      background: rgba(8,13,18,.75);
+      backdrop-filter: blur(18px);
+      border-bottom: 1px solid var(--border);
+      z-index: 100;
+    }
+    .nav-logo {
+      display: flex; align-items: center; gap: .55rem;
+      text-decoration: none;
+      font-family: var(--font-head);
+      font-size: 1.35rem;
+      color: var(--text);
+    }
+    .nav-logo .leaf { font-size: 1.6rem; }
+    .nav-links { display: flex; gap: .25rem; list-style: none; }
+    .nav-links a {
+      display: block; padding: .45rem 1rem;
+      text-decoration: none;
+      font-size: .875rem; font-weight: 500;
+      color: var(--muted);
+      border-radius: 6px;
+      transition: color .2s, background .2s;
+      letter-spacing: .03em; text-transform: uppercase;
+    }
+    .nav-links a:hover, .nav-links a.active {
+      color: var(--accent);
+      background: rgba(74,222,128,.08);
+    }
+    .nav-cta {
+      background: var(--accent) !important;
+      color: #080d12 !important;
+      font-weight: 700 !important;
+      padding: .45rem 1.25rem !important;
+    }
+    .nav-cta:hover { background: var(--accent2) !important; }
+
+    .hamburger {
+      display: none; flex-direction: column; gap: 5px;
+      cursor: pointer; background: none; border: none; padding: 4px;
+    }
+    .hamburger span {
+      display: block; width: 24px; height: 2px;
+      background: var(--text); border-radius: 2px;
+    }
+    @media (max-width: 640px) {
+      .hamburger { display: flex; }
+      .nav-links {
+        position: fixed; top: var(--nav-h); left: 0; right: 0;
+        flex-direction: column; gap: 0;
+        background: rgba(8,13,18,.96);
+        backdrop-filter: blur(18px);
+        border-bottom: 1px solid var(--border);
+        padding: .75rem 1.5rem 1.25rem;
+        display: none;
+      }
+      .nav-links.open { display: flex; }
+    }
+
+    /* ── Page layout ────────────────────────────────────── */
+    .page-wrap {
+      position: relative; z-index: 1;
+      padding-top: calc(var(--nav-h) + 3.5rem);
+      padding-bottom: 5rem;
+      max-width: 900px;
+      margin: 0 auto;
+      padding-left: clamp(1.5rem, 5vw, 3rem);
+      padding-right: clamp(1.5rem, 5vw, 3rem);
+    }
+
+    /* ── Hero strip ─────────────────────────────────────── */
+    .about-hero {
+      margin-bottom: 4rem;
+      animation: fadeUp .8s both;
+    }
+    .page-tag {
+      font-size: .75rem;
+      font-weight: 600;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: .65rem;
+    }
+    .about-hero h1 {
+      font-family: var(--font-head);
+      font-size: clamp(2.2rem, 5vw, 3.8rem);
+      letter-spacing: -.025em;
+      line-height: 1.1;
+    }
+    .about-hero .lead {
+      margin-top: 1rem;
+      font-size: 1.1rem;
+      color: var(--muted);
+      line-height: 1.7;
+      max-width: 580px;
+    }
+
+    @keyframes fadeUp {
+      from { opacity:0; transform: translateY(18px); }
+      to   { opacity:1; transform: translateY(0); }
+    }
+
+    /* ── Section divider ────────────────────────────────── */
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 3rem 0;
+    }
+
+    /* ── Prose sections ─────────────────────────────────── */
+    .prose-section { animation: fadeUp .9s .1s both; }
+    .prose-section + .prose-section { margin-top: 3rem; }
+
+    .prose-section h2 {
+      font-family: var(--font-head);
+      font-size: 1.6rem;
+      letter-spacing: -.02em;
+      margin-bottom: .9rem;
+      display: flex; align-items: center; gap: .6rem;
+    }
+    .prose-section p {
+      color: var(--muted);
+      line-height: 1.75;
+      font-size: .97rem;
+    }
+    .prose-section p + p { margin-top: .75rem; }
+
+    /* ── Tech stack table ───────────────────────────────── */
+    .tech-grid {
+      margin-top: 1.5rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: .85rem;
+    }
+    .tech-pill {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: .9rem 1.1rem;
+      display: flex; align-items: center; gap: .65rem;
+      font-size: .88rem;
+      font-weight: 500;
+      transition: border-color .2s, background .2s;
+    }
+    .tech-pill:hover {
+      border-color: rgba(74,222,128,.25);
+      background: rgba(74,222,128,.05);
+    }
+    .tech-pill .icon { font-size: 1.4rem; }
+    .tech-pill .name { color: var(--text); }
+    .tech-pill .role { font-size: .75rem; color: var(--muted); margin-top: .1rem; }
+
+    /* ── Feature highlights ─────────────────────────────── */
+    .highlight-list {
+      margin-top: 1.25rem;
+      display: flex; flex-direction: column; gap: .75rem;
+    }
+    .hl-item {
+      display: flex; align-items: flex-start; gap: .85rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.1rem 1.25rem;
+    }
+    .hl-icon { font-size: 1.5rem; flex-shrink: 0; margin-top: .05rem; }
+    .hl-title { font-weight: 600; font-size: .95rem; margin-bottom: .25rem; }
+    .hl-desc  { font-size: .85rem; color: var(--muted); line-height: 1.6; }
+
+    /* ── Model metrics ──────────────────────────────────── */
+    .metrics-row {
+      margin-top: 1.5rem;
+      display: flex; flex-wrap: wrap; gap: 1rem;
+    }
+    .metric-box {
+      flex: 1; min-width: 140px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+      text-align: center;
+    }
+    .metric-val {
+      font-family: var(--font-head);
+      font-size: 2rem;
+      color: var(--accent);
+    }
+    .metric-lbl {
+      font-size: .78rem;
+      color: var(--muted);
+      margin-top: .3rem;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+
+    /* ── Input features table ───────────────────────────── */
+    .features-table {
+      width: 100%;
+      margin-top: 1.5rem;
+      border-collapse: collapse;
+      font-size: .88rem;
+    }
+    .features-table th,
+    .features-table td {
+      padding: .75rem 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    .features-table th {
+      font-size: .75rem;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 500;
+    }
+    .features-table td { color: var(--text); }
+    .features-table tr:last-child td { border-bottom: none; }
+    .features-table tr:hover td { background: rgba(255,255,255,.025); }
+    .tag {
+      display: inline-block;
+      padding: .2rem .55rem;
+      border-radius: 4px;
+      font-size: .73rem;
+      font-weight: 600;
+      letter-spacing: .04em;
+    }
+    .tag-cat   { background: rgba(74,222,128,.12); color: var(--accent); }
+    .tag-num   { background: rgba(56,189,248,.12);  color: var(--sky);    }
+    .tag-auto  { background: rgba(251,191,36,.12);  color: var(--gold);   }
+
+    /* ── CTA at bottom ──────────────────────────────────── */
+    .bottom-cta {
+      margin-top: 4rem;
+      background: linear-gradient(135deg, rgba(74,222,128,.1), rgba(251,191,36,.06));
+      border: 1px solid rgba(74,222,128,.2);
+      border-radius: 18px;
+      padding: 3rem 2.5rem;
+      text-align: center;
+    }
+    .bottom-cta h3 {
+      font-family: var(--font-head);
+      font-size: 1.9rem;
+      margin-bottom: .6rem;
+    }
+    .bottom-cta p { color: var(--muted); margin-bottom: 1.75rem; font-size: .97rem; }
+    .btn {
+      display: inline-flex; align-items: center; gap: .5rem;
+      padding: .8rem 2rem; border-radius: 8px;
+      font-family: var(--font-body); font-size: .95rem; font-weight: 600;
+      text-decoration: none; cursor: pointer;
+      transition: transform .2s, box-shadow .2s, background .2s;
+      letter-spacing: .02em;
+    }
+    .btn-primary {
+      background: var(--accent); color: #080d12;
+      box-shadow: 0 0 28px rgba(74,222,128,.35);
+    }
+    .btn-primary:hover {
+      background: var(--accent2);
+      box-shadow: 0 0 40px rgba(74,222,128,.5);
+      transform: translateY(-2px);
+    }
+
+    /* ── Footer ─────────────────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--border);
+      margin-top: 5rem;
+      padding: 2rem clamp(1.5rem, 5vw, 4rem);
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 1rem;
+      font-size: .82rem; color: var(--muted);
+      position: relative; z-index: 1;
+    }
+    footer a { color: var(--accent); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+  <!-- ── Nav ─────────────────────────────────────────────── -->
+  <nav>
+    <a href="/" class="nav-logo">
+      <span class="leaf">🌿</span> CropSense
+    </a>
+    <button class="hamburger" id="burger" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="/">Home</a></li>
+      <li><a href="/about" class="active">About</a></li>
+      <li><a href="/predictor" class="nav-cta">Predictor</a></li>
+    </ul>
+  </nav>
+
+
+  <div class="page-wrap">
+
+    <!-- ── Hero strip ──────────────────────────────────── -->
+    <div class="about-hero">
+      <p class="page-tag">About the Project</p>
+      <h1>What is<br/>CropSense?</h1>
+      <p class="lead">
+        CropSense is an end-to-end machine learning web application that forecasts
+        agricultural crop yield across Indian states — combining historical data,
+        live climate feeds, and a trained Random Forest model into a single,
+        accessible tool for farmers, agronomists, and researchers.
+      </p>
+    </div>
+
+    <hr class="divider" />
+
+    <!-- ── Motivation ──────────────────────────────────── -->
+    <div class="prose-section">
+      <h2>🌱 Motivation</h2>
+      <p>
+        India's agriculture sector feeds over a billion people, yet yield uncertainty
+        remains one of the biggest risks for small-scale farmers. Unpredictable rainfall,
+        shifting seasons, and choosing the wrong crop for a region can all result in
+        devastating losses.
+      </p>
+      <p>
+        CropSense was built to close this gap — making data-driven yield prediction
+        available through a simple web form, with no statistical expertise required.
+        If the model detects a low-yield scenario, it immediately suggests better-suited
+        crops based on historical regional performance.
+      </p>
+    </div>
+
+    <hr class="divider" />
+
+    <!-- ── Tech stack ───────────────────────────────────── -->
+    <div class="prose-section">
+      <h2>🛠️ Technology Stack</h2>
+      <p>CropSense is built entirely on open-source Python libraries and free APIs.</p>
+      <div class="tech-grid">
+        <div class="tech-pill">
+          <span class="icon">🐍</span>
+          <div><div class="name">Python 3</div><div class="role">Core language</div></div>
+        </div>
+        <div class="tech-pill">
+          <span class="icon">🌶️</span>
+          <div><div class="name">Flask</div><div class="role">Web framework</div></div>
+        </div>
+        <div class="tech-pill">
+          <span class="icon">🌲</span>
+          <div><div class="name">scikit-learn</div><div class="role">ML model</div></div>
+        </div>
+        <div class="tech-pill">
+          <span class="icon">🐼</span>
+          <div><div class="name">pandas</div><div class="role">Data processing</div></div>
+        </div>
+        <div class="tech-pill">
+          <span class="icon">🔢</span>
+          <div><div class="name">NumPy</div><div class="role">Numerical ops</div></div>
+        </div>
+        <div class="tech-pill">
+          <span class="icon">🌤️</span>
+          <div><div class="name">Open-Meteo</div><div class="role">Live weather API</div></div>
+        </div>
+        <div class="tech-pill">
+          <span class="icon">🎨</span>
+          <div><div class="name">HTML / CSS / JS</div><div class="role">Frontend</div></div>
+        </div>
+        <div class="tech-pill">
+          <span class="icon">🥒</span>
+          <div><div class="name">Pickle</div><div class="role">Model serialisation</div></div>
+        </div>
+      </div>
+    </div>
+
+    <hr class="divider" />
+
+    <!-- ── ML Model ─────────────────────────────────────── -->
+    <div class="prose-section">
+      <h2>🧠 The ML Model</h2>
+      <p>
+        The predictive core of CropSense is a <strong>Random Forest Regressor</strong>
+        trained on the Indian Crop Production dataset. The model uses 200 estimators
+        and was trained with an 80/20 train-test split.
+      </p>
+
+      <div class="metrics-row">
+        <div class="metric-box">
+          <div class="metric-val">200</div>
+          <div class="metric-lbl">Estimators</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-val">80/20</div>
+          <div class="metric-lbl">Train / Test Split</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-val">R²</div>
+          <div class="metric-lbl">Evaluation Metric</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-val">8</div>
+          <div class="metric-lbl">Input Features</div>
+        </div>
+      </div>
+    </div>
+
+    <hr class="divider" />
+
+    <!-- ── Input features ───────────────────────────────── -->
+    <div class="prose-section">
+      <h2>📋 Model Input Features</h2>
+      <p>The model accepts eight input features covering the crop, location, climate, and farm resources.</p>
+      <table class="features-table">
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th>Type</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>State</td>
+            <td><span class="tag tag-cat">Categorical</span></td>
+            <td>Indian state where the crop is grown</td>
+          </tr>
+          <tr>
+            <td>Crop</td>
+            <td><span class="tag tag-cat">Categorical</span></td>
+            <td>Crop variety (e.g., Rice, Wheat, Cotton)</td>
+          </tr>
+          <tr>
+            <td>Season</td>
+            <td><span class="tag tag-cat">Categorical</span></td>
+            <td>Growing season (Kharif, Rabi, Whole Year…)</td>
+          </tr>
+          <tr>
+            <td>Crop Year</td>
+            <td><span class="tag tag-num">Numeric</span></td>
+            <td>Harvest year</td>
+          </tr>
+          <tr>
+            <td>Area</td>
+            <td><span class="tag tag-num">Numeric</span></td>
+            <td>Cultivated area in hectares</td>
+          </tr>
+          <tr>
+            <td>Annual Rainfall</td>
+            <td><span class="tag tag-auto">Auto-fetched</span></td>
+            <td>Rainfall in mm — filled from live weather API</td>
+          </tr>
+          <tr>
+            <td>Fertilizer</td>
+            <td><span class="tag tag-num">Numeric</span></td>
+            <td>Fertilizer applied (kg)</td>
+          </tr>
+          <tr>
+            <td>Pesticide</td>
+            <td><span class="tag tag-num">Numeric</span></td>
+            <td>Pesticide applied (kg)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <hr class="divider" />
+
+    <!-- ── Key Features ─────────────────────────────────── -->
+    <div class="prose-section">
+      <h2>✨ Key Features</h2>
+      <div class="highlight-list">
+        <div class="hl-item">
+          <span class="hl-icon">🌤️</span>
+          <div>
+            <div class="hl-title">Live Weather Auto-fill</div>
+            <div class="hl-desc">
+              When you select a state, CropSense fetches real-time weather for the
+              state capital via Open-Meteo and pre-fills the rainfall field for you.
+            </div>
+          </div>
+        </div>
+        <div class="hl-item">
+          <span class="hl-icon">💡</span>
+          <div>
+            <div class="hl-title">Smart Crop Recommendations</div>
+            <div class="hl-desc">
+              If predicted yield falls below the 25th percentile, the app surfaces
+              the top 5 historically high-yield crops for your region and season.
+            </div>
+          </div>
+        </div>
+        <div class="hl-item">
+          <span class="hl-icon">📊</span>
+          <div>
+            <div class="hl-title">Regional Data Intelligence</div>
+            <div class="hl-desc">
+              State-level average rainfall is pre-computed from the dataset and used
+              as a fallback when the weather API is unavailable.
+            </div>
+          </div>
+        </div>
+        <div class="hl-item">
+          <span class="hl-icon">🔒</span>
+          <div>
+            <div class="hl-title">No API Key Needed</div>
+            <div class="hl-desc">
+              Open-Meteo is a completely free, open-source weather API with no
+              registration or key required — ever.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Bottom CTA ────────────────────────────────────── -->
+    <div class="bottom-cta">
+      <h3>See it in action.</h3>
+      <p>Jump into the predictor and get your first yield forecast in under a minute.</p>
+      <a href="/predictor" class="btn btn-primary">🌾 Open the Predictor</a>
+    </div>
+
+  </div><!-- /page-wrap -->
+
+
+  <!-- ── Footer ───────────────────────────────────────────── -->
+  <footer>
+    <span>© 2025 <strong>CropSense</strong>. Built with Flask &amp; scikit-learn.</span>
+    <span>
+      <a href="/">Home</a> ·
+      <a href="/about">About</a> ·
+      <a href="/predictor">Predictor</a>
+    </span>
+  </footer>
+
+
+  <script>
+    const burger   = document.getElementById('burger');
+    const navLinks = document.getElementById('navLinks');
+    burger.addEventListener('click', () => navLinks.classList.toggle('open'));
+  </script>
+</body>
+</html>

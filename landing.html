@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CropSense — Intelligent Crop Yield Prediction</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ── Reset & tokens ─────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #080d12;
+      --surface:   rgba(255,255,255,.04);
+      --border:    rgba(255,255,255,.08);
+      --accent:    #4ade80;        /* leaf green */
+      --accent2:   #86efac;
+      --gold:      #fbbf24;
+      --text:      #e8f0e9;
+      --muted:     rgba(232,240,233,.45);
+      --glow:      rgba(74,222,128,.18);
+      --font-head: 'Playfair Display', Georgia, serif;
+      --font-body: 'DM Sans', sans-serif;
+      --nav-h:     68px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Animated grain texture ─────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Navigation ─────────────────────────────────────── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      height: var(--nav-h);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 clamp(1.5rem, 5vw, 4rem);
+      background: rgba(8,13,18,.75);
+      backdrop-filter: blur(18px);
+      border-bottom: 1px solid var(--border);
+      z-index: 100;
+    }
+
+    .nav-logo {
+      display: flex; align-items: center; gap: .55rem;
+      text-decoration: none;
+      font-family: var(--font-head);
+      font-size: 1.35rem;
+      color: var(--text);
+      letter-spacing: -.01em;
+    }
+    .nav-logo .leaf { font-size: 1.6rem; }
+
+    .nav-links { display: flex; gap: .25rem; list-style: none; }
+
+    .nav-links a {
+      display: block;
+      padding: .45rem 1rem;
+      text-decoration: none;
+      font-size: .875rem;
+      font-weight: 500;
+      color: var(--muted);
+      border-radius: 6px;
+      transition: color .2s, background .2s;
+      letter-spacing: .03em;
+      text-transform: uppercase;
+    }
+    .nav-links a:hover,
+    .nav-links a.active {
+      color: var(--accent);
+      background: rgba(74,222,128,.08);
+    }
+
+    .nav-cta {
+      background: var(--accent) !important;
+      color: #080d12 !important;
+      font-weight: 700 !important;
+      padding: .45rem 1.25rem !important;
+    }
+    .nav-cta:hover { background: var(--accent2) !important; }
+
+    /* Hamburger (mobile) */
+    .hamburger {
+      display: none;
+      flex-direction: column; gap: 5px;
+      cursor: pointer; background: none; border: none; padding: 4px;
+    }
+    .hamburger span {
+      display: block; width: 24px; height: 2px;
+      background: var(--text); border-radius: 2px;
+      transition: transform .3s, opacity .3s;
+    }
+
+    @media (max-width: 640px) {
+      .hamburger { display: flex; }
+      .nav-links {
+        position: fixed; top: var(--nav-h); left: 0; right: 0;
+        flex-direction: column; gap: 0;
+        background: rgba(8,13,18,.96);
+        backdrop-filter: blur(18px);
+        border-bottom: 1px solid var(--border);
+        padding: .75rem 1.5rem 1.25rem;
+        display: none;
+      }
+      .nav-links.open { display: flex; }
+    }
+
+    /* ── Hero Section ───────────────────────────────────── */
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      padding: calc(var(--nav-h) + 3rem) clamp(1.5rem, 6vw, 6rem) 4rem;
+      overflow: hidden;
+      text-align: center;
+    }
+
+    /* Background radial glows */
+    .hero::after {
+      content: '';
+      position: absolute;
+      width: 900px; height: 900px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(74,222,128,.07) 0%, transparent 70%);
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      animation: pulse 7s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%,100% { transform: translate(-50%,-50%) scale(1); }
+      50%      { transform: translate(-50%,-50%) scale(1.12); }
+    }
+
+    /* Floating field lines decoration */
+    .hero-bg-lines {
+      position: absolute; inset: 0;
+      background:
+        repeating-linear-gradient(
+          135deg,
+          transparent,
+          transparent 60px,
+          rgba(74,222,128,.018) 60px,
+          rgba(74,222,128,.018) 61px
+        );
+      pointer-events: none;
+    }
+
+    .hero-content {
+      position: relative; z-index: 1;
+      max-width: 860px;
+    }
+
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: .5rem;
+      padding: .35rem 1rem;
+      border: 1px solid rgba(74,222,128,.3);
+      border-radius: 100px;
+      background: rgba(74,222,128,.06);
+      font-size: .78rem;
+      font-weight: 500;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 2rem;
+      animation: fadeUp .8s .1s both;
+    }
+    .hero-badge .dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+      animation: blink 2s ease infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.35} }
+
+    h1 {
+      font-family: var(--font-head);
+      font-size: clamp(3rem, 8vw, 6.5rem);
+      line-height: 1.04;
+      letter-spacing: -.03em;
+      color: var(--text);
+      animation: fadeUp .9s .2s both;
+    }
+    h1 .highlight {
+      display: block;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--gold) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-sub {
+      margin: 1.75rem auto 0;
+      max-width: 560px;
+      font-size: 1.1rem;
+      line-height: 1.7;
+      color: var(--muted);
+      font-weight: 300;
+      animation: fadeUp .9s .35s both;
+    }
+
+    .hero-actions {
+      margin-top: 2.75rem;
+      display: flex; align-items: center; justify-content: center;
+      gap: 1rem; flex-wrap: wrap;
+      animation: fadeUp .9s .5s both;
+    }
+
+    .btn {
+      display: inline-flex; align-items: center; gap: .5rem;
+      padding: .8rem 2rem;
+      border-radius: 8px;
+      font-family: var(--font-body);
+      font-size: .95rem;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      transition: transform .2s, box-shadow .2s, background .2s;
+      letter-spacing: .02em;
+    }
+    .btn:active { transform: scale(.97); }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #080d12;
+      box-shadow: 0 0 28px rgba(74,222,128,.35);
+    }
+    .btn-primary:hover {
+      background: var(--accent2);
+      box-shadow: 0 0 40px rgba(74,222,128,.5);
+      transform: translateY(-2px);
+    }
+
+    .btn-secondary {
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover {
+      background: rgba(255,255,255,.07);
+      border-color: rgba(255,255,255,.16);
+      transform: translateY(-2px);
+    }
+
+    @keyframes fadeUp {
+      from { opacity:0; transform: translateY(22px); }
+      to   { opacity:1; transform: translateY(0);    }
+    }
+
+    /* ── Stats strip ────────────────────────────────────── */
+    .stats-strip {
+      position: relative; z-index: 1;
+      margin-top: 4rem;
+      display: flex; flex-wrap: wrap; gap: 1.5rem;
+      justify-content: center;
+      animation: fadeUp .9s .65s both;
+    }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.1rem 1.75rem;
+      min-width: 140px;
+      text-align: center;
+      backdrop-filter: blur(8px);
+    }
+    .stat-value {
+      font-family: var(--font-head);
+      font-size: 2rem;
+      color: var(--accent);
+      line-height: 1;
+    }
+    .stat-label {
+      font-size: .78rem;
+      color: var(--muted);
+      margin-top: .35rem;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+    }
+
+    /* ── Features Section ───────────────────────────────── */
+    .section {
+      position: relative; z-index: 1;
+      padding: 6rem clamp(1.5rem, 6vw, 6rem);
+    }
+    .section-label {
+      font-size: .75rem;
+      font-weight: 600;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: .75rem;
+    }
+    .section-title {
+      font-family: var(--font-head);
+      font-size: clamp(2rem, 4vw, 3rem);
+      letter-spacing: -.025em;
+      line-height: 1.15;
+      max-width: 560px;
+    }
+    .section-sub {
+      margin-top: .75rem;
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1.7;
+      max-width: 480px;
+    }
+
+    .features-grid {
+      margin-top: 3.5rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.25rem;
+    }
+
+    .feature-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2rem 1.75rem;
+      transition: border-color .25s, transform .25s, box-shadow .25s;
+      position: relative;
+      overflow: hidden;
+    }
+    .feature-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      opacity: 0;
+      transition: opacity .3s;
+    }
+    .feature-card:hover {
+      border-color: rgba(74,222,128,.25);
+      transform: translateY(-4px);
+      box-shadow: 0 20px 40px rgba(0,0,0,.3), 0 0 30px var(--glow);
+    }
+    .feature-card:hover::before { opacity: 1; }
+
+    .feature-icon {
+      font-size: 2.2rem;
+      margin-bottom: 1.1rem;
+      display: block;
+    }
+    .feature-title {
+      font-family: var(--font-head);
+      font-size: 1.2rem;
+      margin-bottom: .6rem;
+    }
+    .feature-desc {
+      font-size: .9rem;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    /* ── How It Works ───────────────────────────────────── */
+    .how-section {
+      border-top: 1px solid var(--border);
+    }
+
+    .steps-row {
+      margin-top: 3.5rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 0;
+      position: relative;
+    }
+    .steps-row::before {
+      content: '';
+      position: absolute;
+      top: 2.2rem; left: 12%; right: 12%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border), transparent);
+    }
+
+    .step {
+      text-align: center;
+      padding: 1rem 1.5rem;
+      position: relative;
+    }
+    .step-num {
+      width: 48px; height: 48px;
+      border-radius: 50%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-head);
+      font-size: 1.1rem;
+      color: var(--accent);
+      margin: 0 auto 1.1rem;
+      position: relative; z-index: 1;
+      transition: background .25s, border-color .25s;
+    }
+    .step:hover .step-num {
+      background: rgba(74,222,128,.12);
+      border-color: var(--accent);
+    }
+    .step-title {
+      font-weight: 600;
+      font-size: .95rem;
+      margin-bottom: .4rem;
+    }
+    .step-desc {
+      font-size: .82rem;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    /* ── CTA Band ───────────────────────────────────────── */
+    .cta-band {
+      margin: 0 clamp(1.5rem, 5vw, 4rem) 5rem;
+      border-radius: 20px;
+      background:
+        linear-gradient(135deg, rgba(74,222,128,.12) 0%, rgba(251,191,36,.07) 100%),
+        var(--surface);
+      border: 1px solid rgba(74,222,128,.2);
+      padding: 4rem 3rem;
+      text-align: center;
+      position: relative; z-index: 1;
+      overflow: hidden;
+    }
+    .cta-band::after {
+      content: '🌾';
+      position: absolute;
+      font-size: 10rem;
+      opacity: .05;
+      right: 3rem; top: 50%;
+      transform: translateY(-50%) rotate(15deg);
+      pointer-events: none;
+    }
+    .cta-band h2 {
+      font-family: var(--font-head);
+      font-size: clamp(1.75rem, 3.5vw, 2.75rem);
+      letter-spacing: -.02em;
+      margin-bottom: .75rem;
+    }
+    .cta-band p {
+      color: var(--muted);
+      font-size: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    /* ── Footer ─────────────────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2rem clamp(1.5rem, 5vw, 4rem);
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 1rem;
+      font-size: .82rem;
+      color: var(--muted);
+      position: relative; z-index: 1;
+    }
+    footer a { color: var(--accent); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+  <!-- ── Navigation ──────────────────────────────────────── -->
+  <nav>
+    <a href="/" class="nav-logo">
+      <span class="leaf">🌿</span> CropSense
+    </a>
+
+    <button class="hamburger" id="burger" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+
+    <ul class="nav-links" id="navLinks">
+      <li><a href="/"          class="active">Home</a></li>
+      <li><a href="/about">About</a></li>
+      <li><a href="/predictor" class="nav-cta">Predictor</a></li>
+    </ul>
+  </nav>
+
+
+  <!-- ── Hero ────────────────────────────────────────────── -->
+  <section class="hero">
+    <div class="hero-bg-lines"></div>
+
+    <div class="hero-content">
+      <div class="hero-badge">
+        <span class="dot"></span>
+        AI-Powered Agriculture Intelligence
+      </div>
+
+      <h1>
+        Predict Your Harvest
+        <span class="highlight">with Precision.</span>
+      </h1>
+
+      <p class="hero-sub">
+        CropSense uses machine learning trained on decades of Indian agricultural data
+        to give farmers, researchers, and policy-makers accurate crop yield forecasts —
+        powered by live weather and smart crop recommendations.
+      </p>
+
+      <div class="hero-actions">
+        <a href="/predictor" class="btn btn-primary">
+          🌾 Start Predicting
+        </a>
+        <a href="/about" class="btn btn-secondary">
+          Learn More →
+        </a>
+      </div>
+
+      <div class="stats-strip">
+        <div class="stat-card">
+          <div class="stat-value">30+</div>
+          <div class="stat-label">Indian States</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">100+</div>
+          <div class="stat-label">Crop Varieties</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">RF</div>
+          <div class="stat-label">ML Model</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">Live</div>
+          <div class="stat-label">Weather Data</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ── Features ────────────────────────────────────────── -->
+  <section class="section">
+    <p class="section-label">Why CropSense</p>
+    <h2 class="section-title">Everything a smart farm needs.</h2>
+    <p class="section-sub">
+      From real-time climate conditions to data-driven crop suggestions —
+      all in one lightweight, fast interface.
+    </p>
+
+    <div class="features-grid">
+      <div class="feature-card">
+        <span class="feature-icon">🧠</span>
+        <h3 class="feature-title">Random Forest Model</h3>
+        <p class="feature-desc">
+          Trained on nationwide crop data with 200 decision trees, capturing
+          complex non-linear patterns between climate, soil usage, and yield.
+        </p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🌤️</span>
+        <h3 class="feature-title">Live Weather Integration</h3>
+        <p class="feature-desc">
+          Automatically fetches real-time temperature, humidity, and
+          precipitation via Open-Meteo — no API key required, always accurate.
+        </p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">💡</span>
+        <h3 class="feature-title">Smart Crop Suggestions</h3>
+        <p class="feature-desc">
+          When predicted yield is low, CropSense recommends better-suited
+          crops for your state and season based on historical yield rankings.
+        </p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">📍</span>
+        <h3 class="feature-title">Region-Aware Predictions</h3>
+        <p class="feature-desc">
+          Encodes state, season, and crop with label encoders to preserve
+          regional agricultural patterns learned during training.
+        </p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">⚡</span>
+        <h3 class="feature-title">Instant Results</h3>
+        <p class="feature-desc">
+          Predictions are served in milliseconds via a lightweight Flask backend —
+          no waiting, no heavy infrastructure.
+        </p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🔓</span>
+        <h3 class="feature-title">Open &amp; Transparent</h3>
+        <p class="feature-desc">
+          Built on open datasets and open-source tools. The model, training
+          pipeline, and data are fully visible and reproducible.
+        </p>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ── How It Works ────────────────────────────────────── -->
+  <section class="section how-section">
+    <p class="section-label">Process</p>
+    <h2 class="section-title">How it works.</h2>
+
+    <div class="steps-row">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-title">Select Region</div>
+        <div class="step-desc">Pick your state, season, and target crop from the predictor form.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-title">Auto-fill Weather</div>
+        <div class="step-desc">Live rainfall and conditions are fetched automatically for your state capital.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-title">Enter Farm Data</div>
+        <div class="step-desc">Provide area, fertilizer, and pesticide amounts for your land.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-title">Get Prediction</div>
+        <div class="step-desc">Receive an instant yield forecast with smart alternatives if yield is low.</div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ── CTA Band ─────────────────────────────────────────── -->
+  <div class="cta-band">
+    <h2>Ready to predict your next harvest?</h2>
+    <p>Start with your state and crop — a forecast takes less than 10 seconds.</p>
+    <a href="/predictor" class="btn btn-primary">Open the Predictor →</a>
+  </div>
+
+
+  <!-- ── Footer ───────────────────────────────────────────── -->
+  <footer>
+    <span>© 2025 <strong>CropSense</strong>. Built with Flask &amp; scikit-learn.</span>
+    <span>
+      <a href="/">Home</a> ·
+      <a href="/about">About</a> ·
+      <a href="/predictor">Predictor</a>
+    </span>
+  </footer>
+
+
+  <script>
+    // Mobile nav toggle
+    const burger    = document.getElementById('burger');
+    const navLinks  = document.getElementById('navLinks');
+    burger.addEventListener('click', () => navLinks.classList.toggle('open'));
+  </script>
+</body>
+</html>
